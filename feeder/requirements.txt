@@ -1,0 +1,2 @@
+influxdb
+influxdb-client==1.26.0
