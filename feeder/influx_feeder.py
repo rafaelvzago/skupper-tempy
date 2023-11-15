@@ -6,7 +6,8 @@ import time
 url = "http://influxdb-service:8086"
 org = "zago"
 bucket = "redhat"
-token = "BOhEvb8y0kKJXJPGaNPfu4XZFJiZ-Kdd0SlWFpPUBwp0FAMm1TLplAK5XW9R6Qpi-pEmRyTLqSOg0KwLFmo29w=="
+
+token = "gFXqNTnI__3YWpY1dpXioEb4CkXUvrEgSGK_P_83kJfe9tXVnGIUD1LBSe0fvCpUTo6CpyqJ4eRxVH1rcD5YJA=="
 
 client = InfluxDBClient(url=url, token=token)
 

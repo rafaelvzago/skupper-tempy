@@ -1,0 +1,19 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: influxdb-ingress
+  namespace: influxdb # Specify the namespace here
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+    - host: influxdb.minikube.local
+      http:
+        paths:
+          - path: /influx
+            pathType: Prefix
+            backend:
+              service:
+                name: influxdb-service
+                port:
+                  number: 8086

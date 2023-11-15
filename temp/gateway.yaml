@@ -1,0 +1,15 @@
+name: temp-reader
+bindings:
+    - name: temperature
+      host: localhost
+      service:
+        address: temperature:5000
+        protocol: http
+        ports:
+            - 5000
+      target_ports:
+        - 5000
+qdr-listeners:
+    - name: amqp
+      host: localhost
+      port: 5000

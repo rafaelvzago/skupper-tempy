@@ -1,2 +1,2 @@
-influxdb
-influxdb-client==1.26.0
+influxdb-client==1.21.0
+kubernetes>=28.1.0,<29.0.0
