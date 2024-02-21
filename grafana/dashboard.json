@@ -1,47 +1,4 @@
 {
-  "__inputs": [
-    {
-      "name": "DS_PROMETHEUS",
-      "label": "prometheus",
-      "description": "",
-      "type": "datasource",
-      "pluginId": "prometheus",
-      "pluginName": "Prometheus"
-    }
-  ],
-  "__elements": {},
-  "__requires": [
-    {
-      "type": "panel",
-      "id": "gauge",
-      "name": "Gauge",
-      "version": ""
-    },
-    {
-      "type": "grafana",
-      "id": "grafana",
-      "name": "Grafana",
-      "version": "10.3.3"
-    },
-    {
-      "type": "panel",
-      "id": "heatmap",
-      "name": "Heatmap",
-      "version": ""
-    },
-    {
-      "type": "datasource",
-      "id": "prometheus",
-      "name": "Prometheus",
-      "version": "1.0.0"
-    },
-    {
-      "type": "panel",
-      "id": "timeseries",
-      "name": "Time series",
-      "version": ""
-    }
-  ],
   "annotations": {
     "list": [
       {
@@ -61,14 +18,14 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": null,
+  "id": 1,
   "links": [],
   "liveNow": false,
   "panels": [
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": "f2da9022-4fc7-41fa-a909-0d3ae72cf13c"
       },
       "fieldConfig": {
         "defaults": {
@@ -131,12 +88,12 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": "f2da9022-4fc7-41fa-a909-0d3ae72cf13c"
           },
           "disableTextWrap": false,
           "editorMode": "builder",
           "exemplar": false,
-          "expr": "temperature_celsius{job=\"tempy-prometheus-adapter\"}",
+          "expr": "temperature_celsius{job=\"metrics-targets\"}",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "instant": true,
@@ -152,7 +109,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": "f2da9022-4fc7-41fa-a909-0d3ae72cf13c"
       },
       "fieldConfig": {
         "defaults": {
@@ -215,12 +172,12 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": "f2da9022-4fc7-41fa-a909-0d3ae72cf13c"
           },
           "disableTextWrap": false,
           "editorMode": "builder",
           "exemplar": false,
-          "expr": "temperature_fahrenheit{instance=\"tempy-prometheus-adapter-service.skupper-pi.svc.cluster.local:9090\"}",
+          "expr": "temperature_fahrenheit{job=\"metrics-targets\"}",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "instant": true,
@@ -236,7 +193,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": "f2da9022-4fc7-41fa-a909-0d3ae72cf13c"
       },
       "fieldConfig": {
         "defaults": {
@@ -321,12 +278,12 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": "f2da9022-4fc7-41fa-a909-0d3ae72cf13c"
           },
           "disableTextWrap": false,
           "editorMode": "builder",
           "exemplar": false,
-          "expr": "temperature_celsius{job=\"tempy-prometheus-adapter\"}",
+          "expr": "temperature_celsius{job=\"metrics-targets\"}",
           "format": "time_series",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
@@ -344,7 +301,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": "f2da9022-4fc7-41fa-a909-0d3ae72cf13c"
       },
       "fieldConfig": {
         "defaults": {
@@ -409,11 +366,11 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": "f2da9022-4fc7-41fa-a909-0d3ae72cf13c"
           },
           "disableTextWrap": false,
           "editorMode": "builder",
-          "expr": "temperature_fahrenheit{job=\"tempy-prometheus-adapter\"}",
+          "expr": "temperature_fahrenheit{job=\"metrics-targets\"}",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "instant": false,
@@ -442,6 +399,6 @@
   "timezone": "",
   "title": "Temperature",
   "uid": "e9c12f52-58ea-4cdf-9f88-4b9c5c6bd0ca",
-  "version": 9,
+  "version": 10,
   "weekStart": ""
 }
