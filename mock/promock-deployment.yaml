@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: promock
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: promock
+  template:
+    metadata:
+      labels:
+        app: promock
+    spec:
+      containers:
+      - name: promock
+        image: quay.io/rzago/promock:0.1
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 5000
+

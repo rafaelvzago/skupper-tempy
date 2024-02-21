@@ -6,11 +6,11 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      app: tempy-prometheus-adapter
+      app: metrics
   template:
     metadata:
       labels:
-        app: tempy-prometheus-adapter
+        app: metrics
     spec:
       containers:
       - name: tempy-prometheus-adapter

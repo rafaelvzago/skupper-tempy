@@ -48,7 +48,7 @@ This part focuses on the setup and configuration of the Raspberry Pi, including 
 
 In this part, the temperature sensor is connected to the Raspberry Pi, and the code for capturing temperature readings is implemented.
 
-#### Configuration:
+#### Configuration
 
 * Raspberry Pi GPIO Pins:
    * Pin 1 (3.3V) is connected to the VDD pin of the DS18B20.
@@ -59,19 +59,19 @@ In this part, the temperature sensor is connected to the Raspberry Pi, and the c
    * The DQ pin is connected to GPIO 4 with a pull-up resistor.
    * The GND pin is grounded to the Raspberry Pi.
 
-#### Connections:
+#### Connections
 
 * A 4.7kΩ pull-up resistor (R1) is placed between the VDD and DQ lines.
 * The VDD line from the DS18B20 is connected to a red wire representing 3.3V from the Raspberry Pi.
 * The DQ line is connected to a white wire representing data and is connected to GPIO 4 on the Raspberry Pi.
 * The GND line is connected to a black wire representing ground from the Raspberry Pi.
 
-#### Functionality:
+#### Functionality
 
 * The DS18B20 temperature sensor reports temperature data through the 1-Wire interface, which requires only one data line (and ground) for communication with the Raspberry Pi.
 * The pull-up resistor is necessary for the 1-Wire protocol used by the DS18B20 to function correctly.
 
-#### REST API:
+#### REST API
 
 * To expose the temperature data, a REST API is implemented using GoLang. The API is used to capture the temperature data and expose it to the cloud provider.
 
@@ -104,13 +104,26 @@ Skuper gateway on the Raspberry Pi:
  skupper gateway expose tempy localhost 5000 --type podman
 ```
 
-### Storage on the Cloud
+### Connection to a cluster using skupper and storage data into prometheus
 
 The temperature data captured by the Raspberry Pi is stored in the cloud using the chosen cloud provider. This part explains how the data is stored and managed.
 
-For this example, we will use the prometheus service created by skupper to store the temperature data, this is not advisable for production, but it is a good example of how to use skupper to store data in the cloud. To acheive this, we will deploy a prometheus-adapter called TempyPrometheusAdapter that will scrape the temperature data from the Raspberry Pi and will expose the data to the prometheus service. 
+For this example, we will deploy a prometheus service to store the temperature data, and a prometheus-adapter to scrape the temperature data from the REST API and store it in the prometheus service. In order to facilitate the prometheus role, we will configure the prometheus service discovery to scrape the temperature data from the prometheus-adapter or any other service labeled as app=metric. with this approach, we can easily add more temperature sensors to the architecture and the prometheus service will automatically scrape the temperature data from the new sensors.
 
+In order to achive this, the deploy will be labeled as app=metric, and the prometheus-adapter will add the temperature data to the service, so the prometheus service will scrape the temperature data from the prometheus-adapter.
 
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tempy-prometheus-adapter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: metrics
+...
+```
 #### Prometheus Adapter:
 1. Build the TemPy prometheus-adapter image:
 ```bash
@@ -138,38 +151,102 @@ temperature_celsius 19.81
 # HELP temperature_fahrenheit Current temperature in Fahrenheit
 # TYPE temperature_fahrenheit gauge
 temperature_fahrenheit 67.66
-...
 ```
-6. We are almost there, now we need to patch the skupper prometheus service to scrape the temperature data from the prometheus-adapter, for this we will use the following command:
+6. CHeck the prometheus-adapter sservice to check if the labels are being added to the service:
 ```bash
-kubectl patch cm prometheus-server-config --namespace=skupper-pi --type=merge -p '
-data:
-  prometheus.yml: |
-    global:
-      scrape_interval:     15s
-      evaluation_interval: 15s
-    alerting:
-      alertmanagers:
-        - static_configs:
-            - targets:
-    rule_files:
-    scrape_configs:
-      - job_name: "prometheus"
-        metrics_path: "/api/v1alpha1/metrics"
-        scheme: "https"
-        tls_config:
-          insecure_skip_verify: true
-        static_configs:
-          - targets: ["skupper.skupper-pi.svc.cluster.local:8010"]
-      - job_name: "tempy-prometheus-adapter"
-        metrics_path: "/metrics"
-        scheme: "http"
-        static_configs:
-          - targets: ["tempy-prometheus-adapter-service.skupper-pi.svc.cluster.local:9090"]
-'
+kubectl get svc tempy-prometheus-adapter-service -o wide
+NAME                               TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)    AGE   SELECTOR
+tempy-prometheus-adapter-service   ClusterIP   10.43.154.250   <none>        9090/TCP   11h   app=metrics
 ```
 
-If all the steps were followed correctly, the temperature data should be stored in the prometheus service, if not please check the logs of the prometheus-adapter and the prometheus service to check for any errors.
+### Prometheus
+
+The temperature data is stored in a prometheus service. This part covers the setup and configuration of the prometheus service. We need to persist the data, so we will use a PVC, in my case I will use the longhorn storage class, but you can use any storage class that you have available in your cluster.
+
+1. Create prometheus PVC:
+```bash
+kubectl apply -f prometheus/prometheus-pvc.yaml
+```
+2. Create prometheus deployment:
+```bash
+kubectl apply -f prometheus/prometheus-deployment.yaml
+```
+3. Configuring the prometheus service discovery to scrape the temperature data from any service labeled as app=metrics:
+```yaml
+...
+      - job_name: 'metrics-targets'
+        scrape_interval: 5s
+        kubernetes_sd_configs:
+          - role: service
+            namespaces:
+              names: ['skupper-pi']
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_service_label_app]
+            regex: metrics
+            action: keep
+...
+```
+* This is a part of the prometheus configuration file, it is configured to scrape the temperature data from any service labeled as app=metrics, so the prometheus service will scrape the temperature data from the prometheus-adapter. Note that this configuration will only look for services labeled as app=metrics in the skupper-pi namespace, so if you are using a different namespace, you will need to change the configuration file accordingly.
+
+```bash
+kubectl apply -f prometheus/prometheus-cm.yaml
+```
+4. Deploy the prometheus:
+```bash
+kubectl apply -f prometheus/prometheus-deployment.yaml
+```
+5. Create prometheus service:
+```bash
+kubectl apply -f prometheus/prometheus-service.yaml
+```
+6. Verify the prometheus is running, from this point on, the prometheus service should be scraping the temperature data from the prometheus-adapter or any other service labeled as app=metrics, let's query all the services discovered by prometheus:
+```bash
+kubectl run -i --tty --rm curl-pod --image=curlimages/curl -- sh -c 'curl -G --data-urlencode "query=up" http://prometheus:9090/api/v1/query' | jq .
+If you don't see a command prompt, try pressing enter.
+warning: couldn't attach to pod/curl-pod, falling back to streaming logs: Internal error occurred: error attaching to container: container is in CONTAINER_EXITED state
+{
+  "status": "success",
+  "data": {
+    "resultType": "vector",
+    "result": [
+      {
+        "metric": {
+          "__name__": "up",
+          "instance": "localhost:9090",
+          "job": "prometheus"
+        },
+        "value": [
+          1708523706.121,
+          "1"
+        ]
+      },
+      {
+        "metric": {
+          "__name__": "up",
+          "instance": "promock.skupper-pi.svc:80",
+          "job": "metrics-targets"
+        },
+        "value": [
+          1708523706.121,
+          "1"
+        ]
+      },
+      {
+        "metric": {
+          "__name__": "up",
+          "instance": "tempy-prometheus-adapter-service.skupper-pi.svc:9090",
+          "job": "metrics-targets"
+        },
+        "value": [
+          1708523706.121,
+          "1"
+        ]
+      }
+    ]
+  }
+}
+...
+
 
 ### Grafana
 

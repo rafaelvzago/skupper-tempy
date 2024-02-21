@@ -3,10 +3,7 @@ kind: Service
 metadata:
   name: tempy-prometheus-adapter-service
 spec:
+  type: ClusterIP
   selector:
-    app: tempy-prometheus-adapter
-  ports:
-  - protocol: TCP
-    port: 9090
-    targetPort: 9090
+    app: metrics
 
