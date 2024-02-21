@@ -270,7 +270,7 @@ Important: My cluster is configrued to use the ingress controller, so I have to 
 
 4. Create a data source connection in grafana that points to the prometheus service:
 ```bash
-http://skupper-prometheus:9090
+http://prometheus:9090
 ```
 
 5. Import the grafana dashboard:
