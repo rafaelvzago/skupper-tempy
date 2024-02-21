@@ -110,19 +110,17 @@ The temperature data captured by the Raspberry Pi is stored in the cloud using t
 
 For this example, we will deploy a prometheus service to store the temperature data, and a prometheus-adapter to scrape the temperature data from the REST API and store it in the prometheus service. In order to facilitate the prometheus role, we will configure the prometheus service discovery to scrape the temperature data from the prometheus-adapter or any other service labeled as app=metric. with this approach, we can easily add more temperature sensors to the architecture and the prometheus service will automatically scrape the temperature data from the new sensors.
 
-In order to achive this, the deploy will be labeled as app=metric, and the prometheus-adapter will add the temperature data to the service, so the prometheus service will scrape the temperature data from the prometheus-adapter.
+In order to achive this, the service will be labeled as app=metric, and the prometheus-adapter will add the temperature data to the service, so the prometheus service will scrape the temperature data from the prometheus-adapter.
 
 ```yaml
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: v1
+kind: Service
 metadata:
-  name: tempy-prometheus-adapter
+  name: tempy-prometheus-adapter-service
 spec:
-  replicas: 1
+  type: ClusterIP
   selector:
-    matchLabels:
-      app: metrics
-...
+    app: metrics
 ```
 #### Prometheus Adapter:
 1. Build the TemPy prometheus-adapter image:
