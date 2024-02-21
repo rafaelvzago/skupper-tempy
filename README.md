@@ -246,7 +246,7 @@ warning: couldn't attach to pod/curl-pod, falling back to streaming logs: Intern
   }
 }
 ...
-
+```
 
 ### Grafana
 
